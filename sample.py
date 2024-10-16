@@ -1,9 +1,10 @@
+import os
 import logging
 import asyncio
 import argparse
 import sys
 
-from AsyncBufferedRedisHandler import AsyncBufferedRedisHandler
+from AsyncBufferedRedisHandler import AsyncBufferedRedisHandler, ConditionalFormatter
 
 def initialize_logger(logger_name, log_filename):
     """
@@ -30,7 +31,11 @@ def initialize_logger(logger_name, log_filename):
     )
     
     # Define the log message format
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = ConditionalFormatter(
+        fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        optional_fields=['pid', 'ZZZpid']
+    )
     redis_handler.setFormatter(formatter)
 
     # Add the handler to the logger
@@ -50,14 +55,20 @@ async def main(logger_name, log_filename):
     logger = initialize_logger(logger_name, log_filename)
     # print(f"POS INIT LOGGER")
 
+    _ad = False
     # Log messages in an infinite loop (adjust as needed)
     try:
         for i in range(100000000000):
         # for i in range(2):
         # for i in range(1):
         # for i in range(3):
+            # logger.info(f"Logging message {i}", extra={'ZZZpid': os.getpid()})
             logger.info(f"Logging message {i}")
             await asyncio.sleep(0.001)
+            if i > 100 and not _ad:
+                logger.info(f"Logging message {i}", extra={'ZZZpid': os.getpid()})
+                _ad = True
+
     except asyncio.CancelledError: pass
     finally:
         for handler in logger.handlers:

@@ -30,6 +30,40 @@ def generate_uuid_from_filename(filename):
     """
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, filename))
 
+class ConditionalFormatter(logging.Formatter):
+    """
+    Custom formatter to conditionally add parts of the log message
+    if specific attributes exist in the log record.
+    """
+    def __init__(self, fmt=None, datefmt=None, optional_fields=None):
+        """
+        Initialize the ConditionalFormatter.
+
+        Args:
+            fmt (str): Base format string for the log message.
+            datefmt (str): Date format string.
+            optional_fields (list): List of field names that should be conditionally added.
+        """
+        self.base_format = fmt
+        self.datefmt = datefmt
+        self.optional_fields = optional_fields if optional_fields else []
+        super().__init__(fmt=self.base_format, datefmt=self.datefmt)
+
+    def format(self, record):
+        # Start with the base format
+        dynamic_format = self.base_format
+
+        # Check each of the optional fields and add it to the format if it exists
+        for field in self.optional_fields:
+            if hasattr(record, field):
+                dynamic_format += f" - {field}: %({field})s"
+
+        # Set the dynamic format to the formatter
+        self._style._fmt = dynamic_format
+
+        # Now format the record with the dynamically created format string
+        return super().format(record)
+
 class AsyncBufferedRedisHandler(logging.Handler):
     """
     A custom logging handler that buffers log records before sending them to a Redis stream_name.
@@ -255,7 +289,22 @@ class AsyncBufferedRedisHandler(logging.Handler):
                 if key not in record_dict and not key.startswith('_'):
                     record_dict[key] = value
 
-            print(record_dict)
+            # Handle known problematic fields like 'args' and other complex types explicitly
+            if isinstance(record.args, tuple):
+                # Convert the 'args' tuple to a string representation
+                record_dict['args'] = str(record.args)
+
+            if record.exc_info:
+                # Convert 'exc_info' to a string representation if present (usually traceback info)
+                record_dict['exc_info'] = self.formatException(record.exc_info)
+
+
+            # Ensure all values are Redis-compatible (no None types)
+            for key, value in record_dict.items():
+                if value is None:
+                    record_dict[key] = ''  # Replace None with an empty string
+
+            # print(record_dict)
             self.log_queue.put(record_dict)
         except Exception as e:
             print(f"EXCEPTION::[{str(e)}]")
