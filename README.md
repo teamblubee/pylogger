@@ -54,4 +54,6 @@ The **AsyncBufferedRedisHandler** is a sophisticated logging solution for Python
 By combining multi-threading, Redis-based buffering, and dedicated processes for writing logs, this handler provides a comprehensive approach to address the shortcomings of traditional Python logging mechanisms.
 
 ### Feature Suggestions
+I could possibly stop writing with print and write to the tty but this might cause issues on non unix platforms so print statements for now.
+
 If you find any issues, you can make suggestions.
