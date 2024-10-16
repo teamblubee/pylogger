@@ -1,4 +1,4 @@
-# AsyncBufferedRedisHandler: An Advanced Python Logger Using Redis
+# PYLOGGER: An Advanced Python Logger Using Redis
 
 The **AsyncBufferedRedisHandler** is a Python logging handler that leverages Redis to manage logs in a scalable and reliable way. This tool is ideal for scenarios where multiple processes on the same machine need to write to log files reliably, avoiding memory issues and preventing the creation of multiple redundant log files, since there's no buffering or retry logic outside of directly pushing to Redis. Below is a detailed description of its key features, design, and how it works.
 
