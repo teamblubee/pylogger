@@ -67,6 +67,8 @@ async def main(logger_name, log_filename):
             await asyncio.sleep(0.001)
             if i > 100 and not _ad:
                 logger.info(f"Logging message {i}", extra={'ZZZpid': os.getpid()})
+
+            if not _ad and (i > 200) and ( i < 300):
                 _ad = True
 
     except asyncio.CancelledError: pass
