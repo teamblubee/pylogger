@@ -5,6 +5,8 @@ import logging
 import redis as redis
 from multiprocessing import Queue
 
+from WTTTYS import write_to_tty_safely as wts
+
 class AsyncRedisTTYWriter:
     """
     A writer that subscribes to a Redis stream and writes log records to TTY.
@@ -91,7 +93,10 @@ class AsyncRedisTTYWriter:
                             # message:    {type(message_data.get(b'formatted_message'))}
                             # decoded:    {message_data_decoded}
                             # """)
-                            print(message_data_decoded['formatted_message'])
+                            # print(message_data_decoded['formatted_message'])
+                            _tty = message_data_decoded.get('tty')
+                            _msg = message_data_decoded['formatted_message']
+                            wts(message=_msg, tty_path=_tty)
                 except Exception as e:
                     print(f"RESPONSE ERROR::[{str(e)}]")
 
