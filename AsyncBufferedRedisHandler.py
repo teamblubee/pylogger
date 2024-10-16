@@ -214,6 +214,7 @@ class AsyncBufferedRedisHandler(logging.Handler):
         return str(path)
 
 
+
     def emit(self, record):
         """
         Adds the log record to the queue for processing.
@@ -224,20 +225,41 @@ class AsyncBufferedRedisHandler(logging.Handler):
             return
 
         try:
+            # Format the record for log message output
             formatted_record = self.format(record)
+
+            # Create the base record dictionary with the standard fields
             record_dict = {
                 "formatted_message": formatted_record,
                 "level": record.levelname,
+                "levelno": record.levelno,
                 "name": record.name,
                 "pathname": record.pathname,
+                "filename": record.filename,
+                "module": record.module,
                 "lineno": record.lineno,
+                "funcName": record.funcName,
+                "created": record.created,
+                "asctime": time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(record.created)),
+                "msecs": record.msecs,
+                "relativeCreated": record.relativeCreated,
+                "thread": record.thread,
+                "threadName": record.threadName,
+                "process": record.process,
+                "message": record.getMessage(),  # The original message with substitutions
                 "tty": self.tty,
             }
+
+            # Add any custom 'extra' fields to the record dictionary
+            for key, value in record.__dict__.items():
+                if key not in record_dict and not key.startswith('_'):
+                    record_dict[key] = value
+
+            print(record_dict)
             self.log_queue.put(record_dict)
         except Exception as e:
             print(f"EXCEPTION::[{str(e)}]")
             self.handleError(record)
-
 
 
     def _setup_signal_handlers(self):
