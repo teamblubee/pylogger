@@ -159,7 +159,7 @@ class AsyncBufferedRedisHandler(logging.Handler):
                 stop_event=stop_event
             )
 
-    def _initialize_tty_writer(self):
+    def _initialize_tty_writer(self, daemon:bool=True):
         """
         Initializes a TTY writer and starts it in a dedicated process.
         """
@@ -168,6 +168,7 @@ class AsyncBufferedRedisHandler(logging.Handler):
 
         # Start the writer process and pass the stop_event
         writer_process = Process(target=self._writer_process, args=('tty', self.stop_event))
+        writer_process.daemon = daemon
         writer_process.start()
 
         # Store the process and stop_event for management
@@ -175,7 +176,7 @@ class AsyncBufferedRedisHandler(logging.Handler):
             'process': writer_process
         }
 
-    def _initialize_file_writer(self):
+    def _initialize_file_writer(self, daemon:bool=True):
         """
         Initializes a File writer and starts it in a dedicated process.
         """
@@ -184,6 +185,7 @@ class AsyncBufferedRedisHandler(logging.Handler):
 
         # Start the writer process and pass the stop_event
         writer_process = Process(target=self._writer_process, args=('file', self.stop_event))
+        writer_process.daemon = daemon
         writer_process.start()
 
         # Store the process and stop_event for management
